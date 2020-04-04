@@ -9,14 +9,14 @@ Usage: star [OPTIONS]
 
   Generates a tar archive of S3 files.
 
-  Files are selected by prefix and optionaly by a time-based filter.
+  Files are selected by prefix and optionally by a time-based filter.
 
   You can select files via the full 's3://<bucket>/prefix/sub-dir' type
-  path, or pass seperate options for the bucket name and prefix. A leading
+  path, or pass separate options for the bucket name and prefix. A leading
   slash will be added to the prefix if it is missing. A trailing slash will
   be added to the prefix if it is missing and time based filtering is used.
 
-  if 'url' is given both 'bucket' and 'prefix' are ignored if also given.
+  If 'url' is given both 'bucket' and 'prefix' are ignored if also given.
 
   'profile' is the AWS CLI profile to use for accessing S3.  If you use
   chaim or cca then this is the alias name for the account.
@@ -26,7 +26,7 @@ Usage: star [OPTIONS]
   'file_2020-03-04T12:32:21.txt'
 
   The 'start' and 'end' parameters can either be ISO formatted date strings
-  or unix timestamps.  If only the date portion of the date/time string is
+  or Unix timestamps.  If only the date portion of the date/time string is
   given the time defaults to midnight of that day.
 
   The length parameter is a string of the form '3h', '2d', '1w' for,
