@@ -48,6 +48,11 @@ def star(bucket, end, length, prefix, start, url):
     A trailing slash will be added to the prefix if it is missing and time
     based filtering is used.
 
+    if 'url' is given both 'bucket' and 'prefix' are ignored if also given.
+
+    'profile' is the AWS CLI profile to use for accessing S3.  If you use
+    chaim or cca then this is the alias name for the account.
+
     The time based filter relies on the files being named with ISO Formatted
     dates and times embedded in the file names.  i.e.  'file_2020-03-04T12:32:21.txt'
 
