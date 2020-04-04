@@ -5,18 +5,12 @@ Creates the command line script `star`.
 
 ```
 $ star --help
-Usage: star [OPTIONS]
+Usage: star [OPTIONS] PATH
 
   Generates a tar archive of S3 files.
 
-  Files are selected by prefix and optionally by a time-based filter.
-
-  You can select files via the full 's3://<bucket>/prefix/sub-dir' type
-  path, or pass separate options for the bucket name and prefix. A leading
-  slash will be added to the prefix if it is missing. A trailing slash will
-  be added to the prefix if it is missing and time based filtering is used.
-
-  If 'url' is given both 'bucket' and 'prefix' are ignored if also given.
+  Files are selected by a path made up of 'bucket/prefix' and optionaly by a
+  time-based filter.
 
   'profile' is the AWS CLI profile to use for accessing S3.  If you use
   chaim or cca then this is the alias name for the account.
@@ -26,7 +20,7 @@ Usage: star [OPTIONS]
   'file_2020-03-04T12:32:21.txt'
 
   The 'start' and 'end' parameters can either be ISO formatted date strings
-  or Unix timestamps.  If only the date portion of the date/time string is
+  or unix timestamps.  If only the date portion of the date/time string is
   given the time defaults to midnight of that day.
 
   The length parameter is a string of the form '3h', '2d', '1w' for,
@@ -38,19 +32,15 @@ Usage: star [OPTIONS]
   defaults to 'now'.
 
   If the 'start' parameter is not given no filtering of the files is
-  performed, and all files from the prefix downwards are copied across to
-  the tar archive recursively.
+  performed, and all files found down the path are copied across to the tar
+  archive recursively.
 
 Options:
-  -b, --bucket TEXT   bucket name (i.e. sniffer-logs)
   -e, --end TEXT      optional end time
   -l, --length TEXT   optional time length (i.e. 1d, 3h, 4w)
-  -p, --prefix TEXT   prefix (i.e. 'prefix/sub-dir/sub-sub-dir')
-  -P, --profile TEXT  AWS CLI profile to use (chaim alias)
+  -p, --profile TEXT  AWS CLI profile to use (chaim alias)
   -s, --start TEXT    optional start time
-  -u, --url TEXT      A full 's3://<bucket>/prefix/prefix' type path
   --help              Show this message and exit.
-
 ```
 
 [modeline]: # ( vim: set ft=markdown tw=74 fenc=utf-8 spell spl=en_gb mousemodel=popup: )

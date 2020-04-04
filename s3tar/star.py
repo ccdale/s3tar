@@ -14,41 +14,20 @@ urlhelp = "A full 's3://<bucket>/prefix/prefix' type path"
 
 
 @cli.command()
-@click.option(
-    "-b", "--bucket", type=click.STRING, help="bucket name (i.e. sniffer-logs)"
-)
 @click.option("-e", "--end", type=click.STRING, help="optional end time")
 @click.option(
     "-l", "--length", type=click.STRING, help="optional time length (i.e. 1d, 3h, 4w)"
 )
 @click.option(
-    "-p",
-    "--prefix",
-    type=click.STRING,
-    help="prefix (i.e. 'prefix/sub-dir/sub-sub-dir')",
-)
-@click.option(
-    "-P", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
+    "-p", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
 )
 @click.option("-s", "--start", type=click.STRING, help="optional start time")
-@click.option(
-    "-u",
-    "--url",
-    type=click.STRING,
-    help="A full 's3://<bucket>/prefix/prefix' type path",
-)
-def star(bucket, end, length, prefix, start, url):
+@click.argument("path")
+def star(start, end, length, profile, path):
     """Generates a tar archive of S3 files.
 
-    Files are selected by prefix and optionaly by a time-based filter.
-
-    You can select files via the full 's3://<bucket>/prefix/sub-dir' type
-    path, or pass seperate options for the bucket name and prefix.
-    A leading slash will be added to the prefix if it is missing.
-    A trailing slash will be added to the prefix if it is missing and time
-    based filtering is used.
-
-    if 'url' is given both 'bucket' and 'prefix' are ignored if also given.
+    Files are selected by a path made up of 'bucket/prefix'
+    and optionaly by a time-based filter.
 
     'profile' is the AWS CLI profile to use for accessing S3.  If you use
     chaim or cca then this is the alias name for the account.
@@ -69,7 +48,7 @@ def star(bucket, end, length, prefix, start, url):
     defaults to 'now'.
 
     If the 'start' parameter is not given no filtering of the files is
-    performed, and all files from the prefix downwards are copied across
+    performed, and all files found down the path are copied across
     to the tar archive recursively.
     """
     pass
