@@ -52,3 +52,5 @@ Options:
   --help              Show this message and exit.
 
 ```
+
+[modeline]: # ( vim: set ft=markdown tw=74 fenc=utf-8 spell spl=en_gb mousemodel=popup: )
