@@ -9,6 +9,7 @@ repository = "https://github.com/ccdale/s3tar"
 
 [tool.poetry.dependencies]
 python = "^3.6"
+click = "^7.1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
