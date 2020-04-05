@@ -17,7 +17,9 @@ Usage: star [OPTIONS] PATH
 
   The time based filter relies on the files being named with ISO Formatted
   dates and times embedded in the file names.  i.e.
-  'file_2020-03-04T12:32:21.txt'
+  'file.2020-03-04T12:32:21.txt' The regular expression used is:
+
+      /.*[._-]{1}([0-9-]{10}T[0-9:]{8}).*/
 
   The 'start' and 'end' parameters can either be ISO formatted date strings
   or unix timestamps.  If only the date portion of the date/time string is
@@ -42,5 +44,3 @@ Options:
   -s, --start TEXT    optional start time
   --help              Show this message and exit.
 ```
-
-[modeline]: # ( vim: set ft=markdown tw=74 fenc=utf-8 spell spl=en_gb mousemodel=popup: )
