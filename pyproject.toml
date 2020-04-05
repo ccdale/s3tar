@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "s3tar"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pulls (filtered) files from S3 and adds them to a tar archive."
 authors = ["Chris Allison <chris.charles.allison+s3tar@gmail.com>"]
 license = "GPL-3.0-or-later"
@@ -10,6 +10,7 @@ repository = "https://github.com/ccdale/s3tar"
 [tool.poetry.dependencies]
 python = "^3.6"
 click = "^7.1.1"
+ccaaws = "^0.4.6"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
