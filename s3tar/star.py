@@ -57,7 +57,7 @@ def makeTsFromLength(length, startts):
 def makeTsFromStr(dtstr):
     try:
         if dtstr.isnumeric() and len(dtstr) == 10:
-            ts = dtstr
+            ts = int(dtstr)
         else:
             dt = datetime.datetime.fromisoformat(dtstr)
             ts = dt.timestamp()
