@@ -44,3 +44,30 @@ Options:
   -s, --start TEXT    optional start time
   --help              Show this message and exit.
 ```
+
+## Install
+The script is python3 only (>=python3.6).
+
+Install it under your python3 user directories with:
+
+```
+python3 -m pip install s3tar --user
+```
+
+If this is the first python3 user script you have you will have to adjust
+your path.  The script location will be `$HOME/.local/bin` on a Linux
+machine, so add that to you path in your shell init file e.g.
+
+```
+echo "export PATH=$HOME/.local/bin:$PATH" >>~/.bashrc
+```
+
+If your shell is bash.
+
+To check that installed ok:
+
+```
+star --help
+```
+
+Should display the help text.
