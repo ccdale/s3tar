@@ -79,17 +79,72 @@ def buildUriFromPath(path):
     return uri
 
 
+def filterRE(name, sts, ets):
+    try:
+        m = tre.match(name)
+        if m is not None:
+            dt = datetime.datetime.fromisoformat(m[1])
+            ts = dt.timestamp()
+            if ts >= sts and ts <= ets:
+                return (ts, True)
+        return (ts, False)
+    except Exception as e:
+        msg = f"failed to filterRE name {name}, sts {sts}, ets {ets}"
+        msg += f"\nException {e}"
+        errorExit("filterRE", msg)
+
+
+def filterTS(obj, sts, ets):
+    try:
+        dt = obj["LastModified"]
+        ts = dt.timestamp()
+        if ts >= sts and ts <= ets:
+            return (ts, True)
+        return (ts, False)
+    except Exception as e:
+        msg = f"failed to filterTS object {obj}, sts {sts}, ets {ets}"
+        msg += f"\nException {e}"
+        errorExit("filterTS", msg)
+
+
+def filterObjs(objects, sts, ets, uselmts=False):
+    try:
+        op = {}
+        for obj in objects:
+            if uselmts:
+                ts, state = filterTS(obj, sts, ets)
+                if state:
+                    op[ts] = obj
+            else:
+                ts, state = filterRE(obj["Key"], sts, ets)
+                if state:
+                    op[ts] = obj
+        return op
+    except Exception as e:
+        msg = f"failed to filter objects: sts {sts}, ets {ets}, uselmts {uselmts}"
+        msg += f"\nException: {e}"
+        errorExit("filterObjs", msg)
+
+
 @cli.command()
 @click.option("-e", "--end", type=click.STRING, help="optional end time")
 @click.option(
     "-l", "--length", type=click.STRING, help="optional time length (i.e. 1d, 3h, 4w)"
 )
 @click.option(
+    "-M",
+    "--usemodified",
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help="use last modified time stamp rather than filename for filtering",
+)
+@click.option(
     "-p", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
 )
 @click.option("-s", "--start", type=click.STRING, help="optional start time")
 @click.argument("path")
-def star(start, end, length, profile, path):
+def star(start, end, length, profile, path, usemodified):
     """Generates a tar archive of S3 files.
 
     Files are selected by a path made up of 'bucket/prefix'
@@ -119,6 +174,9 @@ def star(start, end, length, profile, path):
     If the 'start' parameter is not given no filtering of the files is
     performed, and all files found down the path are copied across
     to the tar archive recursively.
+
+    To use the last modified time stamp of the files rather than their names
+    for filtering pass the '-M' flag.
     """
     uri = buildUriFromPath(path)
     sts = makeTsFromStr(start) if start is not None else 0
@@ -129,19 +187,13 @@ def star(start, end, length, profile, path):
     dets = displayTS(ets)
     s3 = S3FileSystem(profile=profile)
     scheme, bucket, opath = s3.parseS3Uri(uri)
-    msg = f"Will search s3://{bucket}/{opath} for files named between {dsts} and {dets}"
+    ftype = "last updated between" if usemodified else "named between"
+    msg = f"Will search s3://{bucket}/{opath} for files {ftype} {dsts} and {dets}"
     print(msg)
     s3.bucket = bucket
     objs, paths = s3.xls(opath)
-    objects = {}
     if len(objs) > 0:
-        for obj in objs:
-            m = tre.match(obj["Key"])
-            if m is not None:
-                dt = datetime.datetime.fromisoformat(m[1])
-                ts = dt.timestamp()
-                if ts >= sts and ts <= ets:
-                    objects[ts] = obj
+        objects = filterObjs(objs, sts, ets, usemodified)
     print(f"found {len(objects)} files")
     td = tempfile.mkdtemp()
     for obj in objects:

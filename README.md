@@ -40,6 +40,8 @@ Usage: star [OPTIONS] PATH
 Options:
   -e, --end TEXT      optional end time
   -l, --length TEXT   optional time length (i.e. 1d, 3h, 4w)
+  -M, --usemodified   use last modified time stamp rather than filename for
+                      filtering
   -p, --profile TEXT  AWS CLI profile to use (chaim alias)
   -s, --start TEXT    optional start time
   --help              Show this message and exit.
