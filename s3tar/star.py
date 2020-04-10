@@ -107,10 +107,8 @@ def filterRE(name, sts, ets):
         errorExit("filterRE", msg)
 
 
-def filterTS(obj, sts, ets):
+def filterTS(obj, ts, sts, ets):
     try:
-        dt = obj["LastModified"]
-        ts = dt.timestamp()
         if ts >= sts and ts <= ets:
             return True
         return False
