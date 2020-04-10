@@ -281,7 +281,7 @@ def star(
     for obj in objects:
         if "StorageClass" in obj and obj["StorageClass"] in ["GLACIER", "DEEP_ARCHIVE"]:
             if not quiet:
-                print(f"""Not copying {obj["StorageClass"]} obj: {src}""")
+                print(f"""Ignoring {obj["StorageClass"]} object: {src}""")
             ignored += 1
             continue
         src = f"""s3://{bucket}/{objects[obj]["Key"]}"""
