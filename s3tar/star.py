@@ -138,6 +138,9 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
 
 
 @cli.command()
+@click.option(
+    "-c", "--compression", type=click.STRING, help="optional compression, default 'g'"
+)
 @click.option("-e", "--end", type=click.STRING, help="optional end time")
 @click.option(
     "-l", "--length", type=click.STRING, help="optional time length (i.e. 1d, 3h, 4w)"
@@ -154,9 +157,27 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
 @click.option(
     "-p", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
 )
+@click.option(
+    "-q",
+    "--quiet",
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help="be very quiet, only show the tar file name",
+)
 @click.option("-s", "--start", type=click.STRING, help="optional start time")
+@click.option(
+    "-v",
+    "--verbose",
+    type=click.BOOL,
+    is_flag=True,
+    default=False,
+    help="show files that are being copied",
+)
 @click.argument("path")
-def star(start, end, length, name, path, profile, usemodified):
+def star(
+    compression, start, end, length, name, path, profile, quiet, usemodified, verbose
+):
     """Generates a tar archive of S3 files.
 
     Files are selected by a path made up of 'bucket/prefix'
@@ -191,6 +212,12 @@ def star(start, end, length, name, path, profile, usemodified):
     for filtering pass the '-M' flag.
 
     To use the name filter, pass in a partial string that object names must contain.
+
+    The tar archive can be compressed using gzip, bzip2 or lzma. Defaults to gzip.
+    Pass a one char string to the `-c` option of "g", "b", "z" or "n". "n" is
+    no compression. The output tar archive will be named accordingly:
+    ".tar.gz" for gzip, ".tar.bz2" for bzip2, ".tar.xz" for lzma and ".tar" for
+    no compression.
     """
     uri = buildUriFromPath(path)
     sts = makeTsFromStr(start) if start is not None else 0
@@ -207,24 +234,41 @@ def star(start, end, length, name, path, profile, usemodified):
         msg = f"will search s3://{bucket}/{opath} for all files"
     if name is not None:
         msg += f" that contain {name}"
-    print(msg)
+    if not quiet:
+        print(msg)
     s3.bucket = bucket
     objs, paths = s3.xls(opath)
     if len(objs) > 0:
         objects = filterObjs(objs, sts, ets, name, usemodified)
-    print(f"found {len(objects)} files")
+    if not quiet:
+        print(f"found {len(objects)} files")
     td = tempfile.mkdtemp()
     for obj in objects:
         src = f"""s3://{bucket}/{objects[obj]["Key"]}"""
         dest = f"""{td}/{os.path.basename(objects[obj]["Key"])}"""
-        print(f"""{src} -> {dest}""")
+        if verbose and not quiet:
+            print(f"""{src} -> {dest}""")
         s3.xcp(src, dest)
 
     cwd = os.getcwd()
     os.chdir(td)
     home = os.environ.get("HOME", "/tmp")
-    tfn = f"{home}/{bucket}.tar.gz"
-    xtfn = tarfile.open(tfn, "w:gz")
+    if compression is None:
+        compression = "g"
+    if compression == "n":
+        ext = "tar"
+        wt = "w"
+    elif compression == "b":
+        ext = "tar.bz2"
+        wt = "w:bz2"
+    elif compression == "z":
+        ext = "tar.xz"
+        wt = "w:xz"
+    else:
+        ext = "tar.gz"
+        wt = "w:gz"
+    tfn = f"{home}/{bucket}.{ext}"
+    xtfn = tarfile.open(tfn, wt)
     for fn in glob.iglob("*"):
         xtfn.add(fn)
     xtfn.close()
