@@ -277,13 +277,15 @@ def star(
         print(msg)
     s3.bucket = bucket
     objs, paths = s3.xls(opath)
-    if len(objs) > 0:
+    found = len(objs)
+    if found > 0:
         objects = filterObjs(objs, sts, ets, name, usemodified)
     if not quiet:
-        print(f"found {len(objects)} files")
+        print(f"found {found} files")
     td = tempfile.mkdtemp()
     copied = 0
     ignored = 0
+    glacier = 0
     for ts in objects:
         for xob in objects[ts]:
             src = f"""s3://{bucket}/{xob["Key"]}"""
@@ -294,12 +296,13 @@ def star(
             ]:
                 if not quiet:
                     print(f"""Ignoring {xob["StorageClass"]} object: {src}""")
-                ignored += 1
+                glacier += 1
                 continue
             if verbose and not quiet:
                 print(f"""{src} -> {dest}""")
             s3.xcp(src, dest)
             copied += 1
+            ignored -= 1
 
     if copied > 0:
         cwd = os.getcwd()
@@ -330,9 +333,12 @@ def star(
         xtfn.close()
         os.chdir(cwd)
         shutil.rmtree(td)
+    width = max(len(str(found)), len(str(copied)), len(str(ignored)), len(str(glacier)))
     if not quiet:
-        print(f"{copied:>5} copied")
-        print(f"{ignored:>5} ignored")
+        print(f"{copied:>width} copied")
+        print(f"{ignored:>width} ignored")
+        if glacier > 0:
+            print(f"{glacier:>width} in glacier")
     if copied > 0:
         print(tfn)
     else:
