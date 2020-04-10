@@ -15,6 +15,7 @@ import time
 
 import click
 
+from s3tar import __version__
 from ccaaws.s3filesystem import S3FileSystem
 from ccautils.errors import errorExit
 
@@ -246,6 +247,8 @@ def star(
     Using the "-v" switch will make the program verbose, showing each file
     that is copied into the tar archive.
     """
+    if not quiet:
+        print(f"star {__version__}")
     uri = buildUriFromPath(path)
     sts = makeTsFromStr(start) if start is not None else 0
     dsts = displayTS(sts)
