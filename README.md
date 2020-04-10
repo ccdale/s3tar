@@ -5,12 +5,13 @@ Creates the command line script `star`.
 
 ```
 $ star --help
+
 Usage: star [OPTIONS] PATH
 
   Generates a tar archive of S3 files.
 
   Files are selected by a path made up of 'bucket/prefix' and optionaly by a
-  time-based filter.
+  time-based and/or name filter.
 
   'profile' is the AWS CLI profile to use for accessing S3.  If you use
   chaim or cca then this is the alias name for the account.
@@ -33,18 +34,44 @@ Usage: star [OPTIONS] PATH
   If neither the 'end' nor the 'length' parameter is given, the end time
   defaults to 'now'.
 
-  If the 'start' parameter is not given no filtering of the files is
+  If the 'start' parameter is not given no time filtering of the files is
   performed, and all files found down the path are copied across to the tar
   archive recursively.
 
+  To use the last modified time stamp of the files rather than their names
+  for filtering pass the '-M' flag.
+
+  To use the name filter, pass in a partial string that object names must
+  contain.
+
+  The tar archive can be compressed using gzip, bzip2 or lzma. Defaults to
+  gzip. Pass a one char string to the `-c` option of "g", "b", "z" or "n".
+  "n" is no compression. The output tar archive will be named accordingly:
+  ".tar.gz" for gzip, ".tar.bz2" for bzip2, ".tar.xz" for lzma and ".tar"
+  for no compression.
+
+  Using the "-q" switch will turn off all messages (except errors) apart
+  from the final output of the full path of the tar archive that is created.
+
+  Using the "-v" switch will make the program verbose, showing each file
+  that is copied into the tar archive.
+
 Options:
-  -e, --end TEXT      optional end time
-  -l, --length TEXT   optional time length (i.e. 1d, 3h, 4w)
-  -M, --usemodified   use last modified time stamp rather than filename for
-                      filtering
-  -p, --profile TEXT  AWS CLI profile to use (chaim alias)
-  -s, --start TEXT    optional start time
-  --help              Show this message and exit.
+  -c, --compression TEXT  optional compression ['b', 'g', 'n', 'z'], default
+                          'g'
+
+  -e, --end TEXT          optional end time
+  -l, --length TEXT       optional time length (i.e. 1d, 3h, 4w)
+  -M, --usemodified       use last modified time stamp rather than filename
+                          for filtering
+
+  -N, --name TEXT         optional name filter
+  -p, --profile TEXT      AWS CLI profile to use (chaim alias)
+  -q, --quiet             be very quiet, only show the tar file name
+  -s, --start TEXT        optional start time
+  -v, --verbose           show files that are being copied
+  --help                  Show this message and exit.
+
 ```
 
 ## Install

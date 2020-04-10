@@ -139,7 +139,10 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
 
 @cli.command()
 @click.option(
-    "-c", "--compression", type=click.STRING, help="optional compression, default 'g'"
+    "-c",
+    "--compression",
+    type=click.STRING,
+    help="optional compression ['b', 'g', 'n', 'z'], default 'g'",
 )
 @click.option("-e", "--end", type=click.STRING, help="optional end time")
 @click.option(
@@ -218,6 +221,12 @@ def star(
     no compression. The output tar archive will be named accordingly:
     ".tar.gz" for gzip, ".tar.bz2" for bzip2, ".tar.xz" for lzma and ".tar" for
     no compression.
+
+    Using the "-q" switch will turn off all messages (except errors) apart from
+    the final output of the full path of the tar archive that is created.
+
+    Using the "-v" switch will make the program verbose, showing each file
+    that is copied into the tar archive.
     """
     uri = buildUriFromPath(path)
     sts = makeTsFromStr(start) if start is not None else 0
