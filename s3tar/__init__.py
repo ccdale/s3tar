@@ -1,1 +1,2 @@
-__version__ = "1.0.0"
+"""Python s3tar package."""
+__version__ = "1.2.3"
