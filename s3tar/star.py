@@ -18,6 +18,7 @@ import click
 from s3tar import __version__
 from ccaaws.s3filesystem import S3FileSystem
 from ccautils.errors import errorExit
+from ccautils.utils import padStr
 
 
 @click.group()
@@ -284,7 +285,7 @@ def star(
         print(f"found {found} files")
     td = tempfile.mkdtemp()
     copied = 0
-    ignored = 0
+    ignored = found
     glacier = 0
     for ts in objects:
         for xob in objects[ts]:
@@ -294,7 +295,7 @@ def star(
                 "GLACIER",
                 "DEEP_ARCHIVE",
             ]:
-                if not quiet:
+                if verbose and not quiet:
                     print(f"""Ignoring {xob["StorageClass"]} object: {src}""")
                 glacier += 1
                 continue
@@ -333,12 +334,14 @@ def star(
         xtfn.close()
         os.chdir(cwd)
         shutil.rmtree(td)
-    width = max(len(str(found)), len(str(copied)), len(str(ignored)), len(str(glacier)))
     if not quiet:
-        print(f"{copied:>width} copied")
-        print(f"{ignored:>width} ignored")
+        width = max(
+            len(str(found)), len(str(copied)), len(str(ignored)), len(str(glacier))
+        )
+        print(f"{padStr(str(copied), width)} copied")
+        print(f"{padStr(str(ignored), width)} ignored")
         if glacier > 0:
-            print(f"{glacier:>width} in glacier")
+            print(f"{padStr(str(glacier), width)} in glacier")
     if copied > 0:
         print(tfn)
     else:
