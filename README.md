@@ -59,6 +59,8 @@ Usage: star [OPTIONS] PATH
   Using the "-v" switch will make the program verbose, showing each file
   that is copied into the tar archive.
 
+  Files in Glacier and Glacier Deep Archive are ignored.
+
 Options:
   -c, --compression TEXT  optional compression ['b', 'g', 'n', 'z'], default
                           'g'

@@ -249,6 +249,8 @@ def star(
 
     Using the "-v" switch will make the program verbose, showing each file
     that is copied into the tar archive.
+
+    Files in Glacier and Glacier Deep Archive are ignored.
     """
     if not quiet:
         print(f"star {__version__}")
