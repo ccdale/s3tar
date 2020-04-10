@@ -241,6 +241,9 @@ def star(
     ".tar.gz" for gzip, ".tar.bz2" for bzip2, ".tar.xz" for lzma and ".tar" for
     no compression.
 
+    The output filename of the tar archive will be $HOME/<bucket name>.tar
+    You can change this with the "-o" option.
+
     Using the "-q" switch will turn off all messages (except errors) apart from
     the final output of the full path of the tar archive that is created.
 
@@ -282,7 +285,6 @@ def star(
 
     cwd = os.getcwd()
     os.chdir(td)
-    home = os.environ.get("HOME", "/tmp")
     if compression is None:
         compression = "g"
     if compression == "n":
@@ -297,9 +299,12 @@ def star(
     else:
         ext = "tar.gz"
         wt = "w:gz"
+    home = os.environ.get("HOME", "/tmp")
     if output is None:
-        output = bucket
-    tfn = f"{home}/{output}.{ext}"
+        output = f"{home}/{bucket}"
+    elif not output.startswith("/"):
+        output = f"{cwd}/{output}"
+    tfn = f"{output}.{ext}"
     xtfn = tarfile.open(tfn, wt)
     for fn in glob.iglob("*"):
         xtfn.add(fn)
