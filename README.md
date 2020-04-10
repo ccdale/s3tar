@@ -50,6 +50,9 @@ Usage: star [OPTIONS] PATH
   ".tar.gz" for gzip, ".tar.bz2" for bzip2, ".tar.xz" for lzma and ".tar"
   for no compression.
 
+  The output filename of the tar archive will be $HOME/<bucket name>.tar
+  You can change this with the "-o" option.
+
   Using the "-q" switch will turn off all messages (except errors) apart
   from the final output of the full path of the tar archive that is created.
 
@@ -66,6 +69,7 @@ Options:
                           for filtering
 
   -N, --name TEXT         optional name filter
+  -o, --output TEXT       output file name (default: bucket name)
   -p, --profile TEXT      AWS CLI profile to use (chaim alias)
   -q, --quiet             be very quiet, only show the tar file name
   -s, --start TEXT        optional start time

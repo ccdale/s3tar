@@ -163,6 +163,9 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
 )
 @click.option("-N", "--name", type=click.STRING, help="optional name filter")
 @click.option(
+    "-o", "--output", type=click.STRING, help="output file name (default: bucket name)"
+)
+@click.option(
     "-p", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
 )
 @click.option(
@@ -184,7 +187,17 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
 )
 @click.argument("path")
 def star(
-    compression, start, end, length, name, path, profile, quiet, usemodified, verbose
+    compression,
+    start,
+    end,
+    length,
+    name,
+    output,
+    path,
+    profile,
+    quiet,
+    usemodified,
+    verbose,
 ):
     """Generates a tar archive of S3 files.
 
@@ -281,7 +294,9 @@ def star(
     else:
         ext = "tar.gz"
         wt = "w:gz"
-    tfn = f"{home}/{bucket}.{ext}"
+    if output is None:
+        output = bucket
+    tfn = f"{home}/{output}.{ext}"
     xtfn = tarfile.open(tfn, wt)
     for fn in glob.iglob("*"):
         xtfn.add(fn)
