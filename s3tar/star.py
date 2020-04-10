@@ -111,8 +111,8 @@ def filterTS(obj, sts, ets):
         dt = obj["LastModified"]
         ts = dt.timestamp()
         if ts >= sts and ts <= ets:
-            return (ts, True)
-        return (ts, False)
+            return True
+        return False
     except Exception as e:
         msg = f"failed to filterTS object {obj}, sts {sts}, ets {ets}"
         msg += f"\nException {e}"
@@ -124,18 +124,22 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
         op = {}
         xobjs = filterByName(objects, name) if name is not None else objects
         for obj in xobjs:
+            dt = obj["LastModified"]
+            ts = dt.timestamp()
+            if ts not in op:
+                op[ts] = []
             if uselmts:
-                ts, state = filterTS(obj, sts, ets)
+                state = filterTS(obj, ts, sts, ets)
                 if state:
-                    op[ts] = obj
+                    op[ts].append(obj)
             elif sts == 0:
-                dt = obj["LastModified"]
-                ts = dt.timestamp()
-                op[ts] = obj
+                op[ts].append(obj)
             else:
                 ts, state = filterRE(obj["Key"], sts, ets)
+                if ts not in op:
+                    op[ts] = []
                 if state:
-                    op[ts] = obj
+                    op[ts].append(obj)
         return op
     except Exception as e:
         msg = f"failed to filter xobjs: sts {sts}, ets {ets}, name {name}, uselmts {uselmts}"
@@ -280,48 +284,56 @@ def star(
     td = tempfile.mkdtemp()
     copied = 0
     ignored = 0
-    for obj in objects:
-        if "StorageClass" in obj and obj["StorageClass"] in ["GLACIER", "DEEP_ARCHIVE"]:
-            if not quiet:
-                print(f"""Ignoring {obj["StorageClass"]} object: {src}""")
-            ignored += 1
-            continue
-        src = f"""s3://{bucket}/{objects[obj]["Key"]}"""
-        dest = f"""{td}/{os.path.basename(objects[obj]["Key"])}"""
-        if verbose and not quiet:
-            print(f"""{src} -> {dest}""")
-        s3.xcp(src, dest)
-        copied += 1
+    for ts in objects:
+        for xob in objects[ts]:
+            src = f"""s3://{bucket}/{xob["Key"]}"""
+            dest = f"""{td}/{os.path.basename(xob["Key"])}"""
+            if "StorageClass" in xob and xob["StorageClass"] in [
+                "GLACIER",
+                "DEEP_ARCHIVE",
+            ]:
+                if not quiet:
+                    print(f"""Ignoring {xob["StorageClass"]} object: {src}""")
+                ignored += 1
+                continue
+            if verbose and not quiet:
+                print(f"""{src} -> {dest}""")
+            s3.xcp(src, dest)
+            copied += 1
 
-    cwd = os.getcwd()
-    os.chdir(td)
-    if compression is None:
-        compression = "g"
-    if compression == "n":
-        ext = "tar"
-        wt = "w"
-    elif compression == "b":
-        ext = "tar.bz2"
-        wt = "w:bz2"
-    elif compression == "z":
-        ext = "tar.xz"
-        wt = "w:xz"
-    else:
-        ext = "tar.gz"
-        wt = "w:gz"
-    home = os.environ.get("HOME", "/tmp")
-    if output is None:
-        output = f"{home}/{bucket}"
-    elif not output.startswith("/"):
-        output = f"{cwd}/{output}"
-    tfn = f"{output}.{ext}"
-    xtfn = tarfile.open(tfn, wt)
-    for fn in glob.iglob("*"):
-        xtfn.add(fn)
-    xtfn.close()
-    os.chdir(cwd)
-    shutil.rmtree(td)
+    if copied > 0:
+        cwd = os.getcwd()
+        os.chdir(td)
+        if compression is None:
+            compression = "g"
+        if compression == "n":
+            ext = "tar"
+            wt = "w"
+        elif compression == "b":
+            ext = "tar.bz2"
+            wt = "w:bz2"
+        elif compression == "z":
+            ext = "tar.xz"
+            wt = "w:xz"
+        else:
+            ext = "tar.gz"
+            wt = "w:gz"
+        home = os.environ.get("HOME", "/tmp")
+        if output is None:
+            output = f"{home}/{bucket}"
+        elif not output.startswith("/"):
+            output = f"{cwd}/{output}"
+        tfn = f"{output}.{ext}"
+        xtfn = tarfile.open(tfn, wt)
+        for fn in glob.iglob("*"):
+            xtfn.add(fn)
+        xtfn.close()
+        os.chdir(cwd)
+        shutil.rmtree(td)
     if not quiet:
-        print(f"copied: {copied}")
-        print(f"ignored: {ignored}")
-    print(tfn)
+        print(f"{copied:>5} copied")
+        print(f"{ignored:>5} ignored")
+    if copied > 0:
+        print(tfn)
+    else:
+        print("Nothing copied, no archive created")
