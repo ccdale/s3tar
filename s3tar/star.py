@@ -276,12 +276,20 @@ def star(
     if not quiet:
         print(f"found {len(objects)} files")
     td = tempfile.mkdtemp()
+    copied = 0
+    ignored = 0
     for obj in objects:
+        if "StorageClass" in obj and obj["StorageClass"] in ["GLACIER", "DEEP_ARCHIVE"]:
+            if not quiet:
+                print(f"Not copying {src} as it is Glacier")
+            ignored += 1
+            continue
         src = f"""s3://{bucket}/{objects[obj]["Key"]}"""
         dest = f"""{td}/{os.path.basename(objects[obj]["Key"])}"""
         if verbose and not quiet:
             print(f"""{src} -> {dest}""")
         s3.xcp(src, dest)
+        copied += 1
 
     cwd = os.getcwd()
     os.chdir(td)
@@ -311,4 +319,7 @@ def star(
     xtfn.close()
     os.chdir(cwd)
     shutil.rmtree(td)
+    if not quiet:
+        print(f"copied: {copied}")
+        print(f"ignored: {ignored}")
     print(tfn)
