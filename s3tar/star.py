@@ -90,6 +90,7 @@ def filterByName(objects, name):
 
 
 def filterRE(name, sts, ets):
+    ts = ets
     try:
         m = tre.match(name)
         if m is not None:
@@ -126,6 +127,10 @@ def filterObjs(objects, sts, ets, name=None, uselmts=False):
                 ts, state = filterTS(obj, sts, ets)
                 if state:
                     op[ts] = obj
+            elif sts == 0:
+                dt = obj["LastModified"]
+                ts = dt.timestamp()
+                op[ts] = obj
             else:
                 ts, state = filterRE(obj["Key"], sts, ets)
                 if state:
