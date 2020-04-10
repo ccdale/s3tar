@@ -79,6 +79,16 @@ def buildUriFromPath(path):
     return uri
 
 
+def filterByName(objects, name):
+    try:
+        objs = [obj for obj in objects if name in obj["Key"]]
+        return objs
+    except Exception as e:
+        msg = f"failed to filter by name: {name}"
+        msg += f"\nException {e}"
+        errorExit("filterByName", msg)
+
+
 def filterRE(name, sts, ets):
     try:
         m = tre.match(name)
@@ -107,10 +117,11 @@ def filterTS(obj, sts, ets):
         errorExit("filterTS", msg)
 
 
-def filterObjs(objects, sts, ets, uselmts=False):
+def filterObjs(objects, sts, ets, name=None, uselmts=False):
     try:
         op = {}
-        for obj in objects:
+        xobjs = filterByName(objects, name) if name is not None else objects
+        for obj in xobjs:
             if uselmts:
                 ts, state = filterTS(obj, sts, ets)
                 if state:
@@ -121,7 +132,7 @@ def filterObjs(objects, sts, ets, uselmts=False):
                     op[ts] = obj
         return op
     except Exception as e:
-        msg = f"failed to filter objects: sts {sts}, ets {ets}, uselmts {uselmts}"
+        msg = f"failed to filter xobjs: sts {sts}, ets {ets}, name {name}, uselmts {uselmts}"
         msg += f"\nException: {e}"
         errorExit("filterObjs", msg)
 
@@ -139,16 +150,17 @@ def filterObjs(objects, sts, ets, uselmts=False):
     default=False,
     help="use last modified time stamp rather than filename for filtering",
 )
+@click.option("-N", "--name", type=click.STRING, help="optional name filter")
 @click.option(
     "-p", "--profile", type=click.STRING, help="AWS CLI profile to use (chaim alias)"
 )
 @click.option("-s", "--start", type=click.STRING, help="optional start time")
 @click.argument("path")
-def star(start, end, length, profile, path, usemodified):
+def star(start, end, length, name, path, profile, usemodified):
     """Generates a tar archive of S3 files.
 
     Files are selected by a path made up of 'bucket/prefix'
-    and optionaly by a time-based filter.
+    and optionaly by a time-based and/or name filter.
 
     'profile' is the AWS CLI profile to use for accessing S3.  If you use
     chaim or cca then this is the alias name for the account.
@@ -171,12 +183,14 @@ def star(start, end, length, profile, path, usemodified):
     If neither the 'end' nor the 'length' parameter is given, the end time
     defaults to 'now'.
 
-    If the 'start' parameter is not given no filtering of the files is
+    If the 'start' parameter is not given no time filtering of the files is
     performed, and all files found down the path are copied across
     to the tar archive recursively.
 
     To use the last modified time stamp of the files rather than their names
     for filtering pass the '-M' flag.
+
+    To use the name filter, pass in a partial string that object names must contain.
     """
     uri = buildUriFromPath(path)
     sts = makeTsFromStr(start) if start is not None else 0
@@ -189,11 +203,15 @@ def star(start, end, length, profile, path, usemodified):
     scheme, bucket, opath = s3.parseS3Uri(uri)
     ftype = "last updated between" if usemodified else "named between"
     msg = f"Will search s3://{bucket}/{opath} for files {ftype} {dsts} and {dets}"
+    if start is None:
+        msg = f"will search s3://{bucket}/{opath} for all files"
+    if name is not None:
+        msg += f" that contain {name}"
     print(msg)
     s3.bucket = bucket
     objs, paths = s3.xls(opath)
     if len(objs) > 0:
-        objects = filterObjs(objs, sts, ets, usemodified)
+        objects = filterObjs(objs, sts, ets, name, usemodified)
     print(f"found {len(objects)} files")
     td = tempfile.mkdtemp()
     for obj in objects:
