@@ -277,6 +277,7 @@ def star(
     s3.bucket = bucket
     objs, paths = s3.xls(opath)
     found = len(objs)
+    objects = []
     if found > 0:
         objects = filterObjs(objs, sts, ets, name, usemodified)
     if not quiet:
